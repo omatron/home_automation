@@ -1,22 +1,19 @@
 #include <ESP8266WiFi.h>
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
-
-#define WIFI_SSID "WIFI"
-#define WIFI_PASS "PASS"
-
-#define MQTT_SERV "io.adafruit.com"
-#define MQTT_PORT 1883
-#define MQTT_NAME "user"
-#define MQTT_PASS "pass"
+#include "config.h"
 
 //Set up MQTT and WiFi clients
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, MQTT_SERV, MQTT_PORT, MQTT_NAME, MQTT_PASS);
 
 //Set up the feed you're subscribing to
-Adafruit_MQTT_Subscribe onoff = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/f/button");
+Adafruit_MQTT_Subscribe onoff = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/f/lights");
+//Set up the feed to publish
+Adafruit_MQTT_Publish lights = Adafruit_MQTT_Publish(&mqtt, MQTT_NAME "/f/lights");
 
+const int Rele2 = D1;
+bool ligado = false;
 
 void setup()
 {
@@ -37,10 +34,10 @@ void setup()
   mqtt.subscribe(&onoff);
 
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(Rele2, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(Rele2, HIGH);
 
-  
-  
 }
 
 void loop()
@@ -58,19 +55,35 @@ void loop()
     if (subscription == &onoff)
     {
       //Print the new value to the serial monitor
-      Serial.print("onoff: ");
+      Serial.print("message: ");
       Serial.println((char*) onoff.lastread);
       
-      //If the new value is  "ON", turn the light on.
-      //Otherwise, turn it off.
-      if (!strcmp((char*) onoff.lastread, "on"))
+      if (!strcmp((char*) onoff.lastread, "dinner on"))
       {
-        //Active low logic
-        digitalWrite(LED_BUILTIN, LOW);
+        liga();
       }
-      else
+      else if(!strcmp((char*) onoff.lastread, "dinner toggle"))
       {
-        digitalWrite(LED_BUILTIN, HIGH);
+          if(!ligado){
+          lights.publish("dinner on");
+          delay(1000);
+          }
+          else{
+          lights.publish("dinner off");
+          delay(1000);
+       }
+      }
+      else if(!strcmp((char*) onoff.lastread, "dinner off"))
+      {
+          desliga();
+      }
+      else if(!strcmp((char*) onoff.lastread, "all off"))
+      {
+          desliga();
+      }
+      else if(!strcmp((char*) onoff.lastread, "all on"))
+      {
+          liga();
       }
     }
   }
@@ -83,23 +96,6 @@ void loop()
 }
 
 
-/***************************************************
-  Adafruit MQTT Library ESP8266 Example
-
-  Must use ESP8266 Arduino from:
-    https://github.com/esp8266/Arduino
-
-  Works great with Adafruit's Huzzah ESP board & Feather
-  ----> https://www.adafruit.com/product/2471
-  ----> https://www.adafruit.com/products/2821
-
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
-
-  Written by Tony DiCola for Adafruit Industries.
-  MIT license, all text above must be included in any redistribution
- ****************************************************/
 
 void MQTT_connect() 
 {
@@ -144,4 +140,18 @@ while (WiFi.status() != WL_CONNECTED)
     delay(1000);
   }
   Serial.println("Wifi Connected!");
+}
+
+void liga(){
+  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(Rele2, LOW);
+  Serial.println("liga()");
+  ligado = true; 
+}
+
+void desliga(){
+  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(Rele2, HIGH);
+  Serial.println("desliga()");
+  ligado = false;
 }
