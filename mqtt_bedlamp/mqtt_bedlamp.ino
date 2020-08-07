@@ -8,9 +8,9 @@ WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, MQTT_SERV, MQTT_PORT, MQTT_NAME, MQTT_PASS);
 
 //Set up the feed you're subscribing to
-Adafruit_MQTT_Subscribe onoff = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/f/lights");
+Adafruit_MQTT_Subscribe onoff = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/f/lights.bedlamp1");
 //Set up the feed to publish
-Adafruit_MQTT_Publish lights = Adafruit_MQTT_Publish(&mqtt, MQTT_NAME "/f/lights");
+Adafruit_MQTT_Publish lights = Adafruit_MQTT_Publish(&mqtt, MQTT_NAME "/f/lights.bedlamp1");
 
 const int Rele2 = D1;
 bool ligado = false;
@@ -37,7 +37,7 @@ void setup()
   pinMode(Rele2, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
   digitalWrite(Rele2, HIGH);
-
+  lights.publish("testando 123");
 }
 
 void loop()
@@ -58,22 +58,22 @@ void loop()
       Serial.print("message: ");
       Serial.println((char*) onoff.lastread);
       
-      if (!strcmp((char*) onoff.lastread, "dinner on"))
+      if (!strcmp((char*) onoff.lastread, "bedlamp1 on"))
       {
         liga();
       }
-      else if(!strcmp((char*) onoff.lastread, "dinner toggle"))
+      else if(!strcmp((char*) onoff.lastread, "bedlamp1 toggle"))
       {
           if(!ligado){
-          lights.publish("dinner on");
+          lights.publish("bedlamp1 on");
           delay(1000);
           }
           else{
-          lights.publish("dinner off");
+          lights.publish("bedlamp1 off");
           delay(1000);
        }
       }
-      else if(!strcmp((char*) onoff.lastread, "dinner off"))
+      else if(!strcmp((char*) onoff.lastread, "bedlamp1 off"))
       {
           desliga();
       }
