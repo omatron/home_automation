@@ -58,10 +58,14 @@ void loop()
 
   le_temperatura();
   publish_mqtt();
+  sleep(300e6);
 }
 
 
-
+void sleep(int time){
+  Serial.println("I'm awake, but I'm going into deep sleep mode for "+String(time/1e6)+" S");
+  ESP.deepSleep(time); 
+}
 void MQTT_connect() 
 {
   int8_t ret;
@@ -89,7 +93,7 @@ void MQTT_connect()
        Serial.println(mqtt.connectErrorString(ret));
        Serial.println("Retrying MQTT connection in 5 seconds...");
        mqtt.disconnect();
-       delay(5000);  // wait 5 seconds
+       delay(0);  // wait 5 seconds
        
        
   }
